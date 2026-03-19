@@ -1,0 +1,7 @@
+{
+  "projectId": "16610002-dc19-4fc7-a8ba-8651b369a29b",
+  "createdAt": 1773908324950,
+  "version": "1.0",
+  "startupCommands": ["python3 -m venv .venv && .venv/bin/pip install -r requirements.txt && .venv/bin/playwright install chromium && cd backend && ../.venv/bin/uvicorn app:app --host 0.0.0.0 --port 8000 --reload"],
+  "templateId": "any"
+}

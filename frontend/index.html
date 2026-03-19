@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Realtime Web Analyzer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+
+  <!-- ── Header ─────────────────────────────────────────────────────── -->
+  <header id="app-header">
+    <div class="header-brand">
+      <div class="brand-pulse"></div>
+      <span class="brand-name">Web<span class="brand-accent">Analyzer</span></span>
+    </div>
+    <div class="url-bar">
+      <div class="url-input-wrap">
+        <svg class="url-icon" viewBox="0 0 20 20" fill="none">
+          <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M10 2c0 0-3 3-3 8s3 8 3 8" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M10 2c0 0 3 3 3 8s-3 8-3 8" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M2 10h16" stroke="currentColor" stroke-width="1.5"/>
+        </svg>
+        <input id="url-input" type="text" placeholder="https://example.com" autocomplete="off" spellcheck="false" />
+      </div>
+      <button id="analyze-btn">
+        <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.6"/><path d="M8 5.5v5M5.5 8h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        Analyze
+      </button>
+      <button id="export-btn" class="btn-ghost" disabled>
+        <svg viewBox="0 0 16 16" fill="none"><path d="M8 2v8M5 7l3 3 3-3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 13h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        Export
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Status Strip ────────────────────────────────────────────────── -->
+  <div id="status-strip" class="hidden">
+    <div class="status-inner">
+      <span id="status-indicator" class="indicator-idle"></span>
+      <span id="status-text">Ready</span>
+      <div class="progress-track"><div id="progress-fill"></div></div>
+    </div>
+  </div>
+
+  <!-- ── Metric Row ──────────────────────────────────────────────────── -->
+  <div id="metrics-row">
+    <div class="metric accent-emerald" id="m-load">
+      <div class="metric-icon">
+        <svg viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M9 5.5v3.5l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="metric-body">
+        <span class="metric-label">Load Time</span>
+        <span class="metric-val" id="v-load">—</span>
+      </div>
+    </div>
+    <div class="metric accent-cyan" id="m-dns">
+      <div class="metric-icon">
+        <svg viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M9 3c0 0-3 2.5-3 6s3 6 3 6" stroke="currentColor" stroke-width="1.3"/><path d="M9 3c0 0 3 2.5 3 6s-3 6-3 6" stroke="currentColor" stroke-width="1.3"/><path d="M2 9h14" stroke="currentColor" stroke-width="1.3"/></svg>
+      </div>
+      <div class="metric-body">
+        <span class="metric-label">DNS</span>
+        <span class="metric-val" id="v-dns">—</span>
+      </div>
+    </div>
+    <div class="metric accent-amber" id="m-ttfb">
+      <div class="metric-icon">
+        <svg viewBox="0 0 18 18" fill="none"><path d="M9 2.5l1.3 4H15l-3.5 2.5 1.3 4.5L9 11l-3.8 2.5 1.3-4.5L3 6.5h4.7z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="metric-body">
+        <span class="metric-label">TTFB</span>
+        <span class="metric-val" id="v-ttfb">—</span>
+      </div>
+    </div>
+    <div class="metric accent-teal" id="m-dom">
+      <div class="metric-icon">
+        <svg viewBox="0 0 18 18" fill="none"><rect x="3" y="2.5" width="12" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M6 7h6M6 10h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      </div>
+      <div class="metric-body">
+        <span class="metric-label">DOM Ready</span>
+        <span class="metric-val" id="v-dom">—</span>
+      </div>
+    </div>
+    <div class="metric accent-purple" id="m-size">
+      <div class="metric-icon">
+        <svg viewBox="0 0 18 18" fill="none"><path d="M4 13h10M9 3v8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M6 8.5l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="metric-body">
+        <span class="metric-label">Page Size</span>
+        <span class="metric-val" id="v-size">—</span>
+      </div>
+    </div>
+    <div class="metric accent-blue" id="m-reqs">
+      <div class="metric-icon">
+        <svg viewBox="0 0 18 18" fill="none"><path d="M3 5h12M3 9h12M3 13h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </div>
+      <div class="metric-body">
+        <span class="metric-label">Requests</span>
+        <span class="metric-val" id="v-reqs">—</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Pipeline ────────────────────────────────────────────────────── -->
+  <div id="pipeline-wrap">
+    <div id="pipeline-label">
+      <span class="pip-tag">
+        <svg viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.2"/><path d="M6 3.5v2.5l1.5 1.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        Website Loading Journey
+      </span>
+      <span id="pip-subtitle">Enter a URL above and click Analyze</span>
+    </div>
+
+    <div id="pipeline">
+
+      <!-- Top row label -->
+      <div class="pipe-row-label">
+        <span class="row-label-dot" style="background:var(--cyan)"></span>
+        Network Phase
+      </div>
+
+      <!-- Top row: DNS → TCP → TLS → HTTP → Server -->
+      <div class="pipe-row" id="row-top">
+
+        <div class="stage" id="st-dns">
+          <div class="stage-num">1</div>
+          <div class="stage-glow"></div>
+          <div class="stage-icon-wrap">
+            <svg viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="10" stroke="currentColor" stroke-width="1.8"/><path d="M14 4c0 0-4 4-4 10s4 10 4 10" stroke="currentColor" stroke-width="1.8"/><path d="M14 4c0 0 4 4 4 10s-4 10-4 10" stroke="currentColor" stroke-width="1.8"/><path d="M4 14h20" stroke="currentColor" stroke-width="1.8"/></svg>
+          </div>
+          <div class="stage-label">DNS Lookup</div>
+          <div class="stage-timing" id="t-dns"></div>
+          <div class="stage-status"></div>
+        </div>
+
+        <div class="connector h-connector" id="c-dns-tcp">
+          <div class="conn-track"><div class="conn-line"></div></div>
+          <div class="conn-particle"></div>
+          <svg class="conn-arrow" viewBox="0 0 14 14"><path d="M2 7h9M8 4l3 3-3 3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+
+        <div class="stage" id="st-tcp">
+          <div class="stage-num">2</div>
+          <div class="stage-glow"></div>
+          <div class="stage-icon-wrap">
+            <svg viewBox="0 0 28 28" fill="none"><path d="M6 20l4-4m8-8l4-4M10 10l8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="8" cy="20" r="2.5" stroke="currentColor" stroke-width="1.6"/><circle cx="20" cy="8" r="2.5" stroke="currentColor" stroke-width="1.6"/></svg>
+          </div>
+          <div class="stage-label">TCP Connect</div>
+          <div class="stage-timing" id="t-tcp"></div>
+          <div class="stage-status"></div>
+        </div>
+
+        <div class="connector h-connector" id="c-tcp-tls">
+          <div class="conn-track"><div class="conn-line"></div></div>
+          <div class="conn-particle"></div>
+          <svg class="conn-arrow" viewBox="0 0 14 14"><path d="M2 7h9M8 4l3 3-3 3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+
+        <div class="stage" id="st-tls">
+          <div class="stage-num">3</div>
+          <div class="stage-glow"></div>
+          <div class="stage-icon-wrap">
+            <svg viewBox="0 0 28 28" fill="none"><rect x="7" y="13" width="14" height="10" rx="2.5" stroke="currentColor" stroke-width="1.8"/><path d="M10 13V9a4 4 0 0 1 8 0v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="14" cy="18" r="1.8" fill="currentColor"/></svg>
+          </div>
+          <div class="stage-label">TLS / SSL</div>
+          <div class="stage-timing" id="t-tls"></div>
+          <div class="stage-status"></div>
+        </div>
+
+        <div class="connector h-connector" id="c-tls-http">
+          <div class="conn-track"><div class="conn-line"></div></div>
+          <div class="conn-particle"></div>
+          <svg class="conn-arrow" viewBox="0 0 14 14"><path d="M2 7h9M8 4l3 3-3 3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+
+        <div class="stage" id="st-http">
+          <div class="stage-num">4</div>
+          <div class="stage-glow"></div>
+          <div class="stage-icon-wrap">
+            <svg viewBox="0 0 28 28" fill="none"><path d="M14 22V6M6 13l8-7 8 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="stage-label">HTTP Request</div>
+          <div class="stage-timing" id="t-http"></div>
+          <div class="stage-status"></div>
+        </div>
+
+        <div class="connector h-connector" id="c-http-srv">
+          <div class="conn-track"><div class="conn-line"></div></div>
+          <div class="conn-particle"></div>
+          <svg class="conn-arrow" viewBox="0 0 14 14"><path d="M2 7h9M8 4l3 3-3 3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+
+        <div class="stage" id="st-server">
+          <div class="stage-num">5</div>
+          <div class="stage-glow"></div>
+          <div class="stage-icon-wrap">
+            <svg viewBox="0 0 28 28" fill="none"><rect x="4" y="7" width="20" height="6" rx="2" stroke="currentColor" stroke-width="1.8"/><rect x="4" y="15" width="20" height="6" rx="2" stroke="currentColor" stroke-width="1.8"/><circle cx="21" cy="10" r="1.5" fill="currentColor"/><circle cx="21" cy="18" r="1.5" fill="currentColor"/></svg>
+          </div>
+          <div class="stage-label">Server (TTFB)</div>
+          <div class="stage-timing" id="t-server"></div>
+          <div class="stage-status"></div>
+        </div>
+
+      </div>
+
+      <!-- Mid turn connector -->
+      <div id="mid-connector">
+        <div class="mid-spacer"></div>
+        <div class="mid-turn-wrap">
+          <div class="mid-line left-pad"></div>
+          <div class="mid-turn">
+            <div class="mid-particle"></div>
+          </div>
+          <div class="mid-line right-pad"></div>
+        </div>
+        <div class="mid-spacer"></div>
+      </div>
+
+      <!-- Bottom row label -->
+      <div class="pipe-row-label bottom-label">
+        <span class="row-label-dot" style="background:var(--green)"></span>
+        Render Phase
+      </div>
+
+      <!-- Bottom row (reversed): Load ← DOM ← CSS/JS ← Parse ← HTML↓ -->
+      <div class="pipe-row" id="row-bottom">
+
+        <div class="stage" id="st-load">
+          <div class="stage-num">10</div>
+          <div class="stage-glow"></div>
+          <div class="stage-icon-wrap">
+            <svg viewBox="0 0 28 28" fill="none"><path d="M6 14l6 6 10-11" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="stage-label">Page Loaded</div>
+          <div class="stage-timing" id="t-load"></div>
+          <div class="stage-status"></div>
+        </div>
+
+        <div class="connector h-connector reverse" id="c-dom-load">
+          <svg class="conn-arrow" viewBox="0 0 14 14"><path d="M12 7H3M6 4L3 7l3 3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <div class="conn-particle"></div>
+          <div class="conn-track"><div class="conn-line"></div></div>
+        </div>
+
+        <div class="stage" id="st-dom">
+          <div class="stage-num">9</div>
+          <div class="stage-glow"></div>
+          <div class="stage-icon-wrap">
+            <svg viewBox="0 0 28 28" fill="none"><rect x="5" y="4" width="18" height="20" rx="2.5" stroke="currentColor" stroke-width="1.8"/><path d="M9 10h10M9 14h7M9 18h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          </div>
+          <div class="stage-label">DOM Ready</div>
+          <div class="stage-timing" id="t-dom"></div>
+          <div class="stage-status"></div>
+        </div>
+
+        <div class="connector h-connector reverse" id="c-cssjs-dom">
+          <svg class="conn-arrow" viewBox="0 0 14 14"><path d="M12 7H3M6 4L3 7l3 3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <div class="conn-particle"></div>
+          <div class="conn-track"><div class="conn-line"></div></div>
+        </div>
+
+        <div class="stage" id="st-cssjs">
+          <div class="stage-num">8</div>
+          <div class="stage-glow"></div>
+          <div class="stage-icon-wrap">
+            <svg viewBox="0 0 28 28" fill="none"><path d="M9 9l-4 5 4 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 9l4 5-4 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 7l-4 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          </div>
+          <div class="stage-label">Load CSS / JS</div>
+          <div class="stage-timing" id="t-cssjs"></div>
+          <div class="stage-status"></div>
+        </div>
+
+        <div class="connector h-connector reverse" id="c-parse-cssjs">
+          <svg class="conn-arrow" viewBox="0 0 14 14"><path d="M12 7H3M6 4L3 7l3 3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <div class="conn-particle"></div>
+          <div class="conn-track"><div class="conn-line"></div></div>
+        </div>
+
+        <div class="stage" id="st-parse">
+          <div class="stage-num">7</div>
+          <div class="stage-glow"></div>
+          <div class="stage-icon-wrap">
+            <svg viewBox="0 0 28 28" fill="none"><path d="M8 7h12M8 11h8M8 15h11M8 19h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+          </div>
+          <div class="stage-label">Parse HTML</div>
+          <div class="stage-timing" id="t-parse"></div>
+          <div class="stage-status"></div>
+        </div>
+
+        <div class="connector h-connector reverse" id="c-html-parse">
+          <svg class="conn-arrow" viewBox="0 0 14 14"><path d="M12 7H3M6 4L3 7l3 3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <div class="conn-particle"></div>
+          <div class="conn-track"><div class="conn-line"></div></div>
+        </div>
+
+        <div class="stage" id="st-html">
+          <div class="stage-num">6</div>
+          <div class="stage-glow"></div>
+          <div class="stage-icon-wrap">
+            <svg viewBox="0 0 28 28" fill="none"><path d="M14 5v16M7 13l7 8 7-8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="stage-label">HTML Download</div>
+          <div class="stage-timing" id="t-html"></div>
+          <div class="stage-status"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Idle overlay -->
+    <div id="pipeline-idle">
+      <div class="idle-graphic">
+        <div class="idle-ring r1"></div>
+        <div class="idle-ring r2"></div>
+        <div class="idle-ring r3"></div>
+        <svg class="idle-globe" viewBox="0 0 56 56" fill="none">
+          <circle cx="28" cy="28" r="22" stroke="currentColor" stroke-width="1.4"/>
+          <path d="M28 6c0 0-8 8-8 22s8 22 8 22" stroke="currentColor" stroke-width="1.4"/>
+          <path d="M28 6c0 0 8 8 8 22s-8 22-8 22" stroke="currentColor" stroke-width="1.4"/>
+          <path d="M6 28h44" stroke="currentColor" stroke-width="1.4"/>
+          <path d="M10 17h36M10 39h36" stroke="currentColor" stroke-width="1" opacity="0.45"/>
+        </svg>
+      </div>
+      <p class="idle-title">Enter a URL and click <strong>Analyze</strong></p>
+      <p class="idle-sub">Watch each phase of the website loading journey unfold in real time</p>
+    </div>
+  </div>
+
+  <!-- ── Resource Breakdown Bar ──────────────────────────────────────── -->
+  <div id="resource-section" class="hidden">
+    <div class="res-section-header">
+      <div class="res-section-left">
+        <svg viewBox="0 0 14 14" fill="none"><path d="M2 7h4M8 7h4M7 2v4M7 8v4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        <span class="res-section-title">Resource Breakdown</span>
+      </div>
+      <span id="res-total-label"></span>
+    </div>
+    <div id="resource-bar-wrap">
+      <div id="resource-bar"></div>
+    </div>
+    <div id="resource-legend"></div>
+  </div>
+
+  <!-- ── Dev Panel (Requests / Waterfall / Dependency Graph) ─────────── -->
+  <div id="dev-panel" class="hidden">
+    <!-- Tab bar -->
+    <div class="dev-tabs">
+      <button class="dev-tab active" data-tab="requests">
+        <svg viewBox="0 0 14 14" fill="none"><path d="M2 4h10M2 7h10M2 10h7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        Network Requests
+        <span class="dev-tab-badge" id="tab-req-count">0</span>
+      </button>
+      <button class="dev-tab" data-tab="waterfall">
+        <svg viewBox="0 0 14 14" fill="none"><rect x="2" y="3" width="4" height="2" rx="1" fill="currentColor" opacity=".5"/><rect x="2" y="6.5" width="7" height="2" rx="1" fill="currentColor" opacity=".7"/><rect x="2" y="10" width="5" height="2" rx="1" fill="currentColor" opacity=".6"/><rect x="7" y="3" width="5" height="2" rx="1" fill="currentColor"/></svg>
+        Waterfall
+      </button>
+      <button class="dev-tab" data-tab="dependency">
+        <svg viewBox="0 0 14 14" fill="none"><circle cx="7" cy="3" r="1.5" stroke="currentColor" stroke-width="1.2"/><circle cx="3" cy="10" r="1.5" stroke="currentColor" stroke-width="1.2"/><circle cx="11" cy="10" r="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M7 4.5v2M5.5 7.5L3 8.5M8.5 7.5L11 8.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        Dependency Graph
+        <span class="dev-tab-badge unique-badge">UNIQUE</span>
+      </button>
+    </div>
+
+    <!-- Requests Table Tab -->
+    <div class="dev-tab-content active" id="tab-requests">
+      <div class="req-table-wrap">
+        <table class="req-table" id="req-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Method</th>
+              <th>URL</th>
+              <th>Status</th>
+              <th>Type</th>
+              <th>Size</th>
+              <th>Duration</th>
+            </tr>
+          </thead>
+          <tbody id="req-table-body">
+            <tr class="req-table-empty">
+              <td colspan="7">Run an analysis to see live network requests…</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Waterfall Tab -->
+    <div class="dev-tab-content" id="tab-waterfall">
+      <div class="waterfall-wrap">
+        <div class="waterfall-header">
+          <span class="wf-label-col">Resource</span>
+          <div class="wf-timeline-header" id="wf-timeline-header"></div>
+        </div>
+        <div id="waterfall-rows"></div>
+        <div class="waterfall-empty" id="waterfall-empty">Run an analysis to see the request waterfall…</div>
+      </div>
+    </div>
+
+    <!-- Dependency Graph Tab -->
+    <div class="dev-tab-content" id="tab-dependency">
+      <div class="dep-panel">
+        <div class="dep-header">
+          <div class="dep-header-left">
+            <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="4" r="2" stroke="currentColor" stroke-width="1.4"/><circle cx="3" cy="13" r="2" stroke="currentColor" stroke-width="1.4"/><circle cx="13" cy="13" r="2" stroke="currentColor" stroke-width="1.4"/><path d="M8 6v3M6.5 9.5L3 11M9.5 9.5L13 11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            <span>Request Dependency Graph</span>
+            <span class="dep-badge">UNIQUE</span>
+          </div>
+          <span class="dep-hint">Shows which resource triggered each request</span>
+        </div>
+        <div class="dep-legend">
+          <span class="dep-leg-item"><span class="dep-type-badge type-document">HTML</span> Document</span>
+          <span class="dep-leg-item"><span class="dep-type-badge type-stylesheet">CSS</span> Stylesheet</span>
+          <span class="dep-leg-item"><span class="dep-type-badge type-script">JS</span> Script</span>
+          <span class="dep-leg-item"><span class="dep-type-badge type-fetch">XHR</span> Fetch/XHR</span>
+          <span class="dep-leg-item"><span class="dep-type-badge type-image">IMG</span> Image</span>
+          <span class="dep-leg-item"><span class="dep-type-badge type-font">FONT</span> Font</span>
+        </div>
+        <div class="dep-stats" id="dep-stats"></div>
+        <div class="dep-tree-wrap">
+          <div id="dep-tree" class="dep-tree">
+            <div class="dep-empty">Run an analysis to see the dependency graph…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Request Details Side Panel ─────────────────────────────────── -->
+  <div id="details-overlay" class="hidden"></div>
+  <div id="details-panel" class="hidden">
+    <div class="details-header">
+      <div class="details-title-row">
+        <span id="details-method-badge" class="details-method"></span>
+        <span id="details-title" class="details-url"></span>
+      </div>
+      <div class="details-meta-row">
+        <span id="details-status-badge"></span>
+        <span id="details-type-badge" class="details-type"></span>
+        <span id="details-size-badge" class="details-meta-val"></span>
+        <span id="details-dur-badge" class="details-meta-val"></span>
+      </div>
+      <div class="details-actions">
+        <button id="details-replay-btn" class="btn-ghost btn-sm">
+          <svg viewBox="0 0 14 14" fill="none"><path d="M2 7a5 5 0 1 0 1.5-3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M2 3.5V7H5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Replay
+        </button>
+        <button id="details-close-btn" class="btn-ghost btn-sm">
+          <svg viewBox="0 0 14 14" fill="none"><path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          Close
+        </button>
+      </div>
+    </div>
+
+    <div class="details-body">
+
+      <!-- Timing breakdown -->
+      <div class="details-section">
+        <div class="details-section-title">
+          <svg viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.2"/><path d="M6 3.5v2.5l1.5 1.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+          Timing
+        </div>
+        <div id="details-timing" class="details-timing-grid"></div>
+      </div>
+
+      <!-- Request Headers -->
+      <div class="details-section">
+        <div class="details-section-title collapsible" data-target="req-headers-body">
+          <svg viewBox="0 0 12 12" fill="none"><path d="M2 3h8M2 6h6M2 9h4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+          Request Headers
+          <svg class="collapse-arrow" viewBox="0 0 10 10" fill="none"><path d="M2 4l3 3 3-3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="details-headers-body collapsed" id="req-headers-body">
+          <div id="details-req-headers"></div>
+        </div>
+      </div>
+
+      <!-- Response Headers -->
+      <div class="details-section">
+        <div class="details-section-title collapsible" data-target="res-headers-body">
+          <svg viewBox="0 0 12 12" fill="none"><path d="M2 3h8M2 6h6M2 9h4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+          Response Headers
+          <svg class="collapse-arrow" viewBox="0 0 10 10" fill="none"><path d="M2 4l3 3 3-3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="details-headers-body collapsed" id="res-headers-body">
+          <div id="details-res-headers"></div>
+        </div>
+      </div>
+
+      <!-- Response Body -->
+      <div class="details-section" id="details-body-section">
+        <div class="details-section-title collapsible" data-target="res-body-wrap">
+          <svg viewBox="0 0 12 12" fill="none"><rect x="2" y="2" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M4 5h4M4 7h3" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
+          Response Body
+          <svg class="collapse-arrow" viewBox="0 0 10 10" fill="none"><path d="M2 4l3 3 3-3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="details-headers-body collapsed" id="res-body-wrap">
+          <pre id="details-res-body" class="details-code-block"></pre>
+        </div>
+      </div>
+
+      <!-- Replay Result -->
+      <div class="details-section hidden" id="replay-result-section">
+        <div class="details-section-title">
+          <svg viewBox="0 0 12 12" fill="none"><path d="M2 6a4 4 0 1 0 1.2-2.8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M2 3.5V6H4.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Replay Result
+          <span id="replay-status-badge" class="status-badge"></span>
+        </div>
+        <pre id="replay-result-body" class="details-code-block replay-body"></pre>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
