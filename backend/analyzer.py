@@ -1,9 +1,6 @@
 import asyncio
 import json
-import os
 import time
-
-os.environ["PLAYWRIGHT_BROWSERS_PATH"] = "0"
 
 from playwright.async_api import async_playwright
 
@@ -65,11 +62,11 @@ async def analyze_url(url: str, send_callback):
     async with async_playwright() as p:
         browser = await p.chromium.launch(
             headless=True,
+            executable_path=p.chromium.executable_path,
             args=[
                 "--no-sandbox",
                 "--disable-setuid-sandbox",
                 "--disable-dev-shm-usage",
-                "--disable-gpu",
             ],
         )
         context = await browser.new_context(
