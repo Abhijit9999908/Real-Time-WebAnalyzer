@@ -3,5 +3,8 @@ services:
     name: realtime-web-analyzer
     env: python
     pythonVersion: "3.11.0"
-    buildCommand: pip install -r requirements.txt && playwright install --with-deps chromium
+    buildCommand: pip install -r requirements.txt && PLAYWRIGHT_BROWSERS_PATH=0 playwright install chromium
     startCommand: cd backend && uvicorn app:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PLAYWRIGHT_BROWSERS_PATH
+        value: "0"
