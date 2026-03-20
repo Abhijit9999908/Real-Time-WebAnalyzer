@@ -62,7 +62,6 @@ async def analyze_url(url: str, send_callback):
     async with async_playwright() as p:
         browser = await p.chromium.launch(
             headless=True,
-            executable_path=p.chromium.executable_path,
             args=[
                 "--no-sandbox",
                 "--disable-setuid-sandbox",
