@@ -1,4 +1,0 @@
-services:
-  - type: web
-    name: realtime-web-analyzer
-    env: docker
