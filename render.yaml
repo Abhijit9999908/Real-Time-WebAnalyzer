@@ -1,10 +1,12 @@
 services:
   - type: web
     name: realtime-web-analyzer
-    env: python
-    pythonVersion: "3.11.0"
-    buildCommand: pip install -r requirements.txt && playwright install chromium
-    startCommand: cd backend && uvicorn app:app --host 0.0.0.0 --port $PORT
-    envVars:
-      - key: PLAYWRIGHT_BROWSERS_PATH
-        value: "/opt/render/.cache/ms-playwright"
+    runtime: python
+
+    buildCommand: >
+      pip install -r requirements.txt &&
+      playwright install
+
+    startCommand: >
+      cd backend &&
+      uvicorn app:app --host 0.0.0.0 --port $PORT
