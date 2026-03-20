@@ -23,7 +23,7 @@ class ReplayPayload(BaseModel):
 @app.post("/replay")
 async def replay_request(payload: ReplayPayload):
     """Replay an HTTP request and return status, headers, and body."""
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
 
     def _do_request():
         method = payload.method.upper()

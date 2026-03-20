@@ -31,6 +31,7 @@ const state = {
   requests: new Map(),      // id → request object
   phaseTiming: null,
   browserTiming: null,
+  performance: null,
   exportData: null,
   selectedReqId: null,
 };
@@ -245,6 +246,54 @@ function renderResourceBar(requests) {
   });
 }
 
+// ── Performance Breakdown ───────────────────────────────────────────────
+function renderPerformanceBreakdown(data) {
+  const section = $('perf-breakdown');
+  if (!section) return;
+
+  const serverTime = data.server_time || 0;
+  const clientTime = data.client_time || 0;
+  const total = serverTime + clientTime;
+
+  const serverPct = total > 0 ? Math.round((serverTime / total) * 100) : 0;
+  const clientPct = total > 0 ? 100 - serverPct : 0;
+
+  // Values
+  $('v-server-time').textContent = `${serverTime}ms`;
+  $('v-client-time').textContent = `${clientTime}ms`;
+
+  // Bars (animate width)
+  requestAnimationFrame(() => {
+    const barServer = $('bar-server');
+    const barClient = $('bar-client');
+    if (barServer) barServer.style.width = serverPct + '%';
+    if (barClient) barClient.style.width = clientPct + '%';
+  });
+
+  // Percentages
+  $('pct-server').textContent = total > 0 ? `${serverPct}%` : '—';
+  $('pct-client').textContent = total > 0 ? `${clientPct}%` : '—';
+
+  // Detail breakdown
+  const fmt = v => (v != null && v > 0) ? `${v}ms` : '—';
+  $('pd-dns').textContent      = fmt(data.dns);
+  $('pd-tcp').textContent      = fmt(data.tcp);
+  $('pd-ssl').textContent      = fmt(data.ssl);
+  $('pd-ttfb').textContent     = fmt(data.ttfb);
+  $('pd-download').textContent = fmt(data.download);
+  $('pd-render').textContent   = fmt(data.render);
+
+  // Bottleneck badge
+  const badge = $('perf-bottleneck');
+  if (badge && total > 0) {
+    const isServerBottleneck = serverTime >= clientTime;
+    badge.textContent = isServerBottleneck ? '⚡ Server Bottleneck' : '🖥 Client Bottleneck';
+    badge.className = 'perf-bottleneck-badge ' + (isServerBottleneck ? 'bottleneck-server' : 'bottleneck-client');
+  }
+
+  section.classList.remove('hidden');
+}
+
 // ── Tab System ─────────────────────────────────────────────────────────
 document.querySelectorAll('.dev-tab').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -282,7 +331,7 @@ function updateTableRow(id) {
   const tr = $(`tr-${id}`);
   if (!tr) return;
   tr.innerHTML = buildRowHtml(req);
-  tr.addEventListener('click', () => openDetails(id));
+  // Note: click listener was already added in addTableRow — do not re-add here
 
   // Error row highlighting
   tr.className = '';
@@ -847,6 +896,12 @@ function handleMessage(msg) {
       break;
     }
 
+    case 'performance': {
+      state.performance = msg.data;
+      renderPerformanceBreakdown(msg.data);
+      break;
+    }
+
     case 'navigate_error':
       setStatus('error', msg.message || 'Navigation error');
       break;
@@ -921,6 +976,7 @@ function startAnalysis() {
   state.requests.clear();
   state.phaseTiming   = null;
   state.browserTiming = null;
+  state.performance   = null;
   state.exportData    = null;
   state.selectedReqId = null;
 
@@ -954,6 +1010,7 @@ function startAnalysis() {
 
   // Hide sections
   $('resource-section').classList.add('hidden');
+  $('perf-breakdown').classList.add('hidden');
   $('dev-panel').classList.add('hidden');
   closeDetails();
 

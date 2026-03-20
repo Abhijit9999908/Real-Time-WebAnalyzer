@@ -330,6 +330,87 @@
     </div>
   </div>
 
+  <!-- ── Performance Breakdown ────────────────────────────────────────── -->
+  <div id="perf-breakdown" class="hidden">
+    <div class="perf-section-inner">
+
+      <div class="perf-section-header">
+        <div class="perf-header-left">
+          <svg viewBox="0 0 14 14" fill="none">
+            <path d="M2 11L5.5 6l2.5 3 2-2.5L13 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="perf-section-title">Performance Breakdown</span>
+        </div>
+        <span id="perf-bottleneck" class="perf-bottleneck-badge"></span>
+      </div>
+
+      <div class="perf-comparison">
+
+        <div class="perf-half server-half">
+          <div class="perf-half-label">
+            <span class="perf-dot server-dot"></span>
+            Server Time
+            <span class="perf-half-hint">DNS · TCP · TLS · TTFB</span>
+          </div>
+          <div class="perf-half-val" id="v-server-time">—</div>
+          <div class="perf-bar-row">
+            <div class="perf-bar-track">
+              <div class="perf-bar perf-bar-server" id="bar-server" style="width:0%"></div>
+            </div>
+            <span class="perf-pct" id="pct-server">—</span>
+          </div>
+        </div>
+
+        <div class="perf-divider"></div>
+
+        <div class="perf-half client-half">
+          <div class="perf-half-label">
+            <span class="perf-dot client-dot"></span>
+            Client Time
+            <span class="perf-half-hint">Download · Render</span>
+          </div>
+          <div class="perf-half-val" id="v-client-time">—</div>
+          <div class="perf-bar-row">
+            <div class="perf-bar-track">
+              <div class="perf-bar perf-bar-client" id="bar-client" style="width:0%"></div>
+            </div>
+            <span class="perf-pct" id="pct-client">—</span>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="perf-detail-grid">
+        <div class="perf-detail-item server-color">
+          <span class="perf-detail-label">DNS</span>
+          <span class="perf-detail-val" id="pd-dns">—</span>
+        </div>
+        <div class="perf-detail-item server-color">
+          <span class="perf-detail-label">TCP</span>
+          <span class="perf-detail-val" id="pd-tcp">—</span>
+        </div>
+        <div class="perf-detail-item server-color">
+          <span class="perf-detail-label">TLS/SSL</span>
+          <span class="perf-detail-val" id="pd-ssl">—</span>
+        </div>
+        <div class="perf-detail-item server-color">
+          <span class="perf-detail-label">TTFB</span>
+          <span class="perf-detail-val" id="pd-ttfb">—</span>
+        </div>
+        <div class="perf-detail-sep"></div>
+        <div class="perf-detail-item client-color">
+          <span class="perf-detail-label">Download</span>
+          <span class="perf-detail-val" id="pd-download">—</span>
+        </div>
+        <div class="perf-detail-item client-color">
+          <span class="perf-detail-label">Render</span>
+          <span class="perf-detail-val" id="pd-render">—</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <!-- ── Resource Breakdown Bar ──────────────────────────────────────── -->
   <div id="resource-section" class="hidden">
     <div class="res-section-header">
